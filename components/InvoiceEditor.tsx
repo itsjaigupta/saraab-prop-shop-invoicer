@@ -209,20 +209,20 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ invoice, setInvoice, onSa
   return (
     <div className="space-y-10 pb-20">
       {/* Branding Section */}
-      <section className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm relative">
-        <h2 className="text-xs font-bold uppercase tracking-[0.3em] text-black mb-6 border-b pb-4">0. Branding & Authenticity</h2>
-        
-        {/* Set Defaults Button */}
-        <button 
-          onClick={onSaveDefaults}
-          className="absolute top-8 right-8 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-black border border-black px-3 py-1.5 rounded-lg hover:bg-black hover:text-white transition"
-          title="Save current Logo & Signature as default for future invoices"
-        >
-            <Save className="w-3.5 h-3.5" /> Set as Default
-        </button>
+      <section className="bg-white p-5 sm:p-8 rounded-2xl border border-gray-100 shadow-sm">
+        <div className="flex items-center justify-between gap-3 border-b pb-4 mb-6">
+          <h2 className="text-xs font-bold uppercase tracking-[0.3em] text-black">0. Branding & Authenticity</h2>
+          <button
+            onClick={onSaveDefaults}
+            className="shrink-0 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-black border border-black px-2.5 py-1.5 rounded-lg hover:bg-black hover:text-white transition"
+            title="Save current Logo & Signature as default for future invoices"
+          >
+            <Save className="w-3 h-3" /> <span className="hidden xs:inline">Set as</span> Default
+          </button>
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-           <div className="space-y-4">
+          <div className="space-y-4">
               <label className="block text-[10px] font-bold uppercase tracking-widest text-gray-400">Shop Logo</label>
               <div className="flex items-center gap-4">
                  <div className="w-24 h-16 border border-dashed border-gray-200 flex items-center justify-center bg-gray-50 rounded-xl overflow-hidden group relative">
@@ -261,7 +261,7 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ invoice, setInvoice, onSa
       </section>
 
       {/* Invoice Sequence & Date */}
-      <section className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm">
+      <section className="bg-white p-5 sm:p-8 rounded-2xl border border-gray-100 shadow-sm">
         <h2 className="text-xs font-bold uppercase tracking-[0.3em] text-black mb-6 border-b pb-4">1. Document Settings</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div>
@@ -311,7 +311,7 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ invoice, setInvoice, onSa
       </section>
 
       {/* Client Section */}
-      <section className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm">
+      <section className="bg-white p-5 sm:p-8 rounded-2xl border border-gray-100 shadow-sm">
         <h2 className="text-xs font-bold uppercase tracking-[0.3em] text-black mb-6 border-b pb-4">2. Client Details</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6">
           <FieldInput
@@ -344,7 +344,7 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ invoice, setInvoice, onSa
       </section>
 
       {/* Project Details Section (New) */}
-      <section className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm">
+      <section className="bg-white p-5 sm:p-8 rounded-2xl border border-gray-100 shadow-sm">
         <h2 className="text-xs font-bold uppercase tracking-[0.3em] text-black mb-6 border-b pb-4">3. Project Details</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <FieldInput
@@ -379,7 +379,7 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ invoice, setInvoice, onSa
       </section>
 
       {/* Rental Schedule */}
-      <section className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm">
+      <section className="bg-white p-5 sm:p-8 rounded-2xl border border-gray-100 shadow-sm">
         <h2 className="text-xs font-bold uppercase tracking-[0.3em] text-black mb-6 border-b pb-4">4. Rental Schedule</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
              <div className="bg-gray-50 p-5 rounded-xl border border-gray-100">
@@ -420,55 +420,56 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ invoice, setInvoice, onSa
       </section>
 
       {/* Prop Items */}
-      <section className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm">
-        <div className="flex justify-between items-end border-b pb-4 mb-6">
-             <h2 className="text-xs font-bold uppercase tracking-[0.3em] text-black">5. Itemized Props</h2>
-             <div className="flex flex-col items-end gap-2">
-                 <div className="flex items-center gap-3">
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Manual Total Mode</span>
-                      <button 
-                        onClick={() => setInvoice(prev => ({ ...prev, enableManualTotal: !prev.enableManualTotal }))}
-                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none ${invoice.enableManualTotal ? 'bg-black' : 'bg-gray-200'}`}
-                      >
-                        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${invoice.enableManualTotal ? 'translate-x-4.5' : 'translate-x-0.5'}`} />
-                      </button>
-                 </div>
-                 
-                 {!invoice.enableManualTotal && (
-                    <div className="flex items-center gap-3">
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Show Rates in Invoice</span>
-                        <button 
-                          onClick={() => setInvoice(prev => ({ ...prev, showLineItemRates: !prev.showLineItemRates }))}
-                          className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none ${invoice.showLineItemRates ? 'bg-black' : 'bg-gray-200'}`}
-                        >
-                          <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${invoice.showLineItemRates ? 'translate-x-4.5' : 'translate-x-0.5'}`} />
-                        </button>
-                    </div>
-                 )}
-             </div>
+      <section className="bg-white p-5 sm:p-8 rounded-2xl border border-gray-100 shadow-sm">
+        <div className="border-b pb-4 mb-6">
+          <div className="flex items-start justify-between gap-2 flex-wrap">
+            <h2 className="text-xs font-bold uppercase tracking-[0.3em] text-black">5. Itemized Props</h2>
+            <div className="flex flex-col items-end gap-2">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Manual Total</span>
+                <button
+                  onClick={() => setInvoice(prev => ({ ...prev, enableManualTotal: !prev.enableManualTotal }))}
+                  className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none ${invoice.enableManualTotal ? 'bg-black' : 'bg-gray-200'}`}
+                >
+                  <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${invoice.enableManualTotal ? 'translate-x-[18px]' : 'translate-x-0.5'}`} />
+                </button>
+              </div>
+              {!invoice.enableManualTotal && (
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Show Rates</span>
+                  <button
+                    onClick={() => setInvoice(prev => ({ ...prev, showLineItemRates: !prev.showLineItemRates }))}
+                    className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none ${invoice.showLineItemRates ? 'bg-black' : 'bg-gray-200'}`}
+                  >
+                    <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${invoice.showLineItemRates ? 'translate-x-[18px]' : 'translate-x-0.5'}`} />
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
         {invoice.enableManualTotal && (
-            <div className="mb-6 bg-yellow-50 border border-yellow-200 p-4 rounded-xl flex items-center justify-between">
-                <div>
-                   <label className="block text-[10px] font-bold uppercase tracking-widest text-yellow-700 mb-1 flex items-center gap-2">
-                       <Calculator className="w-3.5 h-3.5" /> Manual Subtotal (₹)
-                   </label>
-                   <p className="text-[10px] text-yellow-600">Individual item rates are ignored.</p>
-                </div>
-                <input 
-                  type="number" 
-                  value={invoice.manualTotal} 
-                  onChange={(e) => setInvoice(prev => ({ ...prev, manualTotal: parseFloat(e.target.value) || 0 }))} 
-                  className="w-40 border border-yellow-300 rounded-lg p-3 text-lg font-bold text-right focus:ring-1 focus:ring-yellow-500 outline-none" 
-                  placeholder="0.00"
-                />
+          <div className="mb-6 bg-yellow-50 border border-yellow-200 p-4 rounded-xl flex items-center justify-between gap-4">
+            <div className="min-w-0 flex-1">
+              <label className="block text-[10px] font-bold uppercase tracking-widest text-yellow-700 mb-1 flex items-center gap-2">
+                <Calculator className="w-3.5 h-3.5 shrink-0" /> Subtotal (₹)
+              </label>
+              <p className="text-[10px] text-yellow-600">Item rates are ignored.</p>
             </div>
+            <input
+              type="number"
+              value={invoice.manualTotal}
+              onChange={(e) => setInvoice(prev => ({ ...prev, manualTotal: parseFloat(e.target.value) || 0 }))}
+              className="shrink-0 w-28 sm:w-36 border border-yellow-300 rounded-lg p-3 text-lg font-bold text-right focus:ring-1 focus:ring-yellow-500 outline-none"
+              placeholder="0.00"
+            />
+          </div>
         )}
 
         <div className="space-y-6">
           {invoice.items.map((item, index) => (
-            <div key={item.id} className="flex flex-col md:flex-row gap-4 items-start bg-gray-50 p-6 rounded-xl relative group border border-transparent hover:border-gray-200 transition">
+            <div key={item.id} className="flex flex-col md:flex-row gap-3 items-start bg-gray-50 p-4 sm:p-5 rounded-xl relative group border border-transparent hover:border-gray-200 transition">
               <span className="text-[10px] font-bold font-mono text-gray-300 absolute left-2 top-2">{index + 1}</span>
               <div className="flex-grow w-full md:w-auto">
                 <label className="block text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-1 ml-1">Prop Description</label>
@@ -511,7 +512,7 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ invoice, setInvoice, onSa
       </section>
 
       {/* Summary & Logic */}
-      <section className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm">
+      <section className="bg-white p-5 sm:p-8 rounded-2xl border border-gray-100 shadow-sm">
         <h2 className="text-xs font-bold uppercase tracking-[0.3em] text-black mb-6 border-b pb-4">6. Summary & Tax</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
           <div>

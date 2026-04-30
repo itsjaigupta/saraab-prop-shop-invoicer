@@ -713,18 +713,20 @@ const AppMain: React.FC<AppMainProps> = ({ currentUser, onLogout }) => {
             {/* Action Buttons with Horizontal Scroll for Mobile */}
             <div className="flex items-center gap-2 overflow-x-auto no-scrollbar flex-1 pb-1 sm:pb-0 pl-4 mask-fade-left">
               
-              <button 
+              {/* New — hidden on mobile, bottom nav handles it */}
+              <button
                 onClick={handleNewInvoice}
-                className="flex items-center gap-2 text-[10px] bg-gray-800 hover:bg-gray-700 px-3 py-2 rounded-lg transition font-bold uppercase tracking-widest text-white border border-gray-700 whitespace-nowrap"
+                className="hidden md:flex items-center gap-2 text-[10px] bg-gray-800 hover:bg-gray-700 px-3 py-2 rounded-lg transition font-bold uppercase tracking-widest text-white border border-gray-700 whitespace-nowrap"
                 title="Create New Invoice"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span className="hidden md:inline">New</span>
               </button>
 
+              {/* Open/History — hidden on mobile, bottom nav handles it */}
               <button
                 onClick={() => { setAnalyticsTab('invoices'); setShowAnalytics(true); }}
-                className="flex items-center gap-2 text-[10px] bg-gray-800 hover:bg-gray-700 px-3 py-2 rounded-lg transition font-bold uppercase tracking-widest text-white border border-gray-700 whitespace-nowrap"
+                className="hidden md:flex items-center gap-2 text-[10px] bg-gray-800 hover:bg-gray-700 px-3 py-2 rounded-lg transition font-bold uppercase tracking-widest text-white border border-gray-700 whitespace-nowrap"
                 title="Invoice History"
               >
                 <FolderOpen className="w-3.5 h-3.5" />
@@ -736,6 +738,7 @@ const AppMain: React.FC<AppMainProps> = ({ currentUser, onLogout }) => {
                 )}
               </button>
 
+              {/* Expenses — visible on all sizes, icon-only on mobile */}
               <button
                 onClick={() => { setAnalyticsTab('expenses'); setShowAnalytics(true); }}
                 className="flex items-center gap-2 text-[10px] bg-gray-800 hover:bg-gray-700 px-3 py-2 rounded-lg transition font-bold uppercase tracking-widest text-white border border-gray-700 whitespace-nowrap"
@@ -745,6 +748,7 @@ const AppMain: React.FC<AppMainProps> = ({ currentUser, onLogout }) => {
                 <span className="hidden md:inline">Expenses</span>
               </button>
 
+              {/* P&L — visible on all sizes, icon-only on mobile */}
               <button
                 onClick={() => { setAnalyticsTab('pnl'); setShowAnalytics(true); }}
                 className="flex items-center gap-2 text-[10px] bg-gray-800 hover:bg-gray-700 px-3 py-2 rounded-lg transition font-bold uppercase tracking-widest text-white border border-gray-700 whitespace-nowrap"
@@ -754,17 +758,18 @@ const AppMain: React.FC<AppMainProps> = ({ currentUser, onLogout }) => {
                 <span className="hidden md:inline">P&amp;L</span>
               </button>
 
-              <button 
+              {/* Save — hidden on mobile, bottom nav handles it */}
+              <button
                 onClick={handleSaveInvoice}
-                className={`flex items-center gap-2 text-[10px] px-3 py-2 rounded-lg transition font-bold uppercase tracking-widest border whitespace-nowrap ${saveStatus === 'saved' ? 'bg-green-600 border-green-600 text-white' : saveStatus === 'error' ? 'bg-red-700 border-red-700 text-white' : 'bg-gray-800 border-gray-700 text-white hover:bg-gray-700'}`}
+                className={`hidden md:flex items-center gap-2 text-[10px] px-3 py-2 rounded-lg transition font-bold uppercase tracking-widest border whitespace-nowrap ${saveStatus === 'saved' ? 'bg-green-600 border-green-600 text-white' : saveStatus === 'error' ? 'bg-red-700 border-red-700 text-white' : 'bg-gray-800 border-gray-700 text-white hover:bg-gray-700'}`}
                 title="Save Invoice"
               >
                 {saveStatus === 'saved' ? <Check className="w-3.5 h-3.5" /> : <Save className="w-3.5 h-3.5" />}
                 <span className="hidden md:inline">{saveStatus === 'saved' ? 'Saved' : saveStatus === 'error' ? 'Error' : 'Save'}</span>
               </button>
 
-              {/* Import/Export Group */}
-              <button 
+              {/* Import/Export — icon-only on mobile */}
+              <button
                 onClick={handleExportJSON}
                 className="flex items-center gap-2 text-[10px] bg-gray-800 hover:bg-gray-700 px-3 py-2 rounded-lg transition font-bold uppercase tracking-widest text-white border border-gray-700 whitespace-nowrap"
                 title="Download Invoice File (.json)"
@@ -773,7 +778,7 @@ const AppMain: React.FC<AppMainProps> = ({ currentUser, onLogout }) => {
                 <span className="hidden lg:inline">Export</span>
               </button>
 
-              <button 
+              <button
                 onClick={handleImportClick}
                 className="flex items-center gap-2 text-[10px] bg-gray-800 hover:bg-gray-700 px-3 py-2 rounded-lg transition font-bold uppercase tracking-widest text-white border border-gray-700 whitespace-nowrap"
                 title="Upload Invoice File (.json)"
@@ -784,26 +789,29 @@ const AppMain: React.FC<AppMainProps> = ({ currentUser, onLogout }) => {
 
               <div className="h-6 w-px bg-gray-700 mx-1 hidden sm:block"></div>
 
-              <button 
-                onClick={handleCopySheets} 
-                className={`flex items-center gap-2 text-[10px] border border-gray-800 px-4 py-2 rounded-lg transition font-bold uppercase tracking-widest whitespace-nowrap ${copied ? 'bg-green-600 text-white border-green-600' : 'bg-gray-900 hover:bg-white hover:text-black'}`}
+              <button
+                onClick={handleCopySheets}
+                className={`hidden sm:flex items-center gap-2 text-[10px] border border-gray-800 px-4 py-2 rounded-lg transition font-bold uppercase tracking-widest whitespace-nowrap ${copied ? 'bg-green-600 text-white border-green-600' : 'bg-gray-900 hover:bg-white hover:text-black'}`}
                 title="Copy formatted table for Excel/Sheets"
               >
                 {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                 <span className="hidden xl:inline">{copied ? 'Copied!' : 'Copy to Sheets'}</span>
               </button>
-              <button 
-                onClick={handlePrint} 
-                className="flex items-center gap-2 text-[10px] bg-white text-black hover:bg-gray-100 px-4 py-2 rounded-lg transition font-bold uppercase tracking-widest whitespace-nowrap"
+
+              {/* Print/PDF — hidden on mobile (bottom nav has PDF) */}
+              <button
+                onClick={handlePrint}
+                className="hidden md:flex items-center gap-2 text-[10px] bg-white text-black hover:bg-gray-100 px-4 py-2 rounded-lg transition font-bold uppercase tracking-widest whitespace-nowrap"
               >
                 <Printer className="w-3.5 h-3.5" />
                 <span className="hidden xl:inline">PDF / Print</span>
               </button>
 
-              <button 
-                onClick={handleDownloadPDF} 
+              {/* Download PDF — hidden on mobile (bottom nav has PDF) */}
+              <button
+                onClick={handleDownloadPDF}
                 disabled={isGeneratingPDF}
-                className={`flex items-center gap-2 text-[10px] bg-white text-black hover:bg-gray-100 px-4 py-2 rounded-lg transition font-bold uppercase tracking-widest whitespace-nowrap ml-2 ${isGeneratingPDF ? 'opacity-50 cursor-not-allowed' : ''}`}
+                className={`hidden md:flex items-center gap-2 text-[10px] bg-white text-black hover:bg-gray-100 px-4 py-2 rounded-lg transition font-bold uppercase tracking-widest whitespace-nowrap ml-2 ${isGeneratingPDF ? 'opacity-50 cursor-not-allowed' : ''}`}
                 title="Download as PDF file"
               >
                 <FileText className={`w-3.5 h-3.5 ${isGeneratingPDF ? 'animate-pulse' : ''}`} />
@@ -827,22 +835,28 @@ const AppMain: React.FC<AppMainProps> = ({ currentUser, onLogout }) => {
         </div>
       </nav>
 
-      <main className="app-container px-4 sm:px-6 md:px-0 py-6 md:py-0 pb-24 md:pb-0 print:p-0 print:m-0 print:w-full print:block">
+      <main className="app-container px-3 sm:px-5 md:px-0 py-4 md:py-0 pb-24 md:pb-0 print:p-0 print:m-0 print:w-full print:block">
         {/* Mobile Toggle */}
-        <div className="md:hidden mb-5 sticky top-16 z-30 flex rounded-xl bg-gray-200 p-1.5 no-print shadow-inner">
-          <button onClick={() => setView('edit')} className={`flex-1 py-3 text-[10px] font-bold uppercase tracking-widest rounded-lg transition ${view === 'edit' ? 'bg-white shadow text-black' : 'text-gray-500'}`}>
+        <div className="md:hidden mb-4 sticky top-16 z-30 flex rounded-xl bg-gray-200 p-1 no-print shadow-inner">
+          <button
+            onClick={() => setView('edit')}
+            className={`flex-1 py-2.5 text-[10px] font-bold uppercase tracking-widest rounded-lg transition ${view === 'edit' ? 'bg-white shadow text-black' : 'text-gray-500'}`}
+          >
             Editor
           </button>
-          <button onClick={() => setView('preview')} className={`flex-1 py-3 text-[10px] font-bold uppercase tracking-widest rounded-lg transition ${view === 'preview' ? 'bg-white shadow text-black' : 'text-gray-500'}`}>
+          <button
+            onClick={() => setView('preview')}
+            className={`flex-1 py-2.5 text-[10px] font-bold uppercase tracking-widest rounded-lg transition ${view === 'preview' ? 'bg-white shadow text-black' : 'text-gray-500'}`}
+          >
             Preview
           </button>
         </div>
 
         {/* Builder Panel (Inputs) */}
         <div className={`builder-panel ${isMobile && view !== 'edit' ? 'hidden' : 'block'} no-print`}>
-           <div className="mb-8">
-             <h1 className="text-4xl font-serif text-gray-900 italic">Invoice Builder</h1>
-             <p className="text-gray-400 text-[11px] uppercase tracking-widest font-bold mt-2 ml-1">Prop Shop Management Suite</p>
+           <div className="mb-5 sm:mb-8">
+             <h1 className="text-2xl sm:text-4xl font-serif text-gray-900 italic">Invoice Builder</h1>
+             <p className="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-1.5 ml-0.5">Prop Shop Management Suite</p>
            </div>
            <InvoiceEditor invoice={invoice} setInvoice={setInvoice} onSaveDefaults={handleSaveDefaults} />
         </div>
@@ -888,26 +902,39 @@ const AppMain: React.FC<AppMainProps> = ({ currentUser, onLogout }) => {
         className="fixed bottom-0 inset-x-0 md:hidden bg-black border-t border-gray-800 flex z-40 no-print"
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
-        <button onClick={handleNewInvoice} className="flex-1 flex flex-col items-center pt-3 pb-2 gap-1 text-gray-500 active:text-white transition">
+        <button
+          onClick={handleNewInvoice}
+          className="flex-1 flex flex-col items-center pt-3 pb-2 gap-1 text-gray-500 active:text-white transition min-h-[52px]"
+        >
           <Plus className="w-5 h-5" />
           <span className="text-[9px] uppercase tracking-widest">New</span>
         </button>
-        <button onClick={() => { setAnalyticsTab('invoices'); setShowAnalytics(true); }} className="flex-1 flex flex-col items-center pt-3 pb-2 gap-1 text-gray-500 active:text-white transition relative">
+        <button
+          onClick={() => { setAnalyticsTab('invoices'); setShowAnalytics(true); }}
+          className="flex-1 flex flex-col items-center pt-3 pb-2 gap-1 text-gray-500 active:text-white transition relative min-h-[52px]"
+        >
           <FolderOpen className="w-5 h-5" />
           {savedInvoices.length > 0 && (
-            <span className="absolute top-2.5 right-[calc(50%-14px)] translate-x-4 bg-white text-black text-[8px] font-black rounded-full w-3.5 h-3.5 flex items-center justify-center leading-none">
-              {savedInvoices.length > 9 ? '9+' : savedInvoices.length}
+            <span className="absolute top-2 right-[calc(50%-18px)] translate-x-5 bg-white text-black text-[8px] font-black rounded-full min-w-[14px] h-3.5 px-0.5 flex items-center justify-center leading-none">
+              {savedInvoices.length > 99 ? '99+' : savedInvoices.length}
             </span>
           )}
           <span className="text-[9px] uppercase tracking-widest">Open</span>
         </button>
-        <button onClick={handleSaveInvoice} className={`flex-1 flex flex-col items-center pt-3 pb-2 gap-1 transition ${saveStatus === 'saved' ? 'text-green-400' : saveStatus === 'error' ? 'text-red-400' : 'text-gray-500 active:text-white'}`}>
+        <button
+          onClick={handleSaveInvoice}
+          className={`flex-1 flex flex-col items-center pt-3 pb-2 gap-1 transition min-h-[52px] ${saveStatus === 'saved' ? 'text-green-400' : saveStatus === 'error' ? 'text-red-400' : 'text-gray-500 active:text-white'}`}
+        >
           {saveStatus === 'saved' ? <Check className="w-5 h-5" /> : <Save className="w-5 h-5" />}
           <span className="text-[9px] uppercase tracking-widest">{saveStatus === 'saved' ? 'Saved' : 'Save'}</span>
         </button>
-        <button onClick={handleDownloadPDF} disabled={isGeneratingPDF} className="flex-1 flex flex-col items-center pt-3 pb-2 gap-1 text-gray-500 active:text-white transition disabled:opacity-30">
+        <button
+          onClick={handleDownloadPDF}
+          disabled={isGeneratingPDF}
+          className="flex-1 flex flex-col items-center pt-3 pb-2 gap-1 text-gray-500 active:text-white transition disabled:opacity-30 min-h-[52px]"
+        >
           <FileText className={`w-5 h-5 ${isGeneratingPDF ? 'animate-pulse' : ''}`} />
-          <span className="text-[9px] uppercase tracking-widest">PDF</span>
+          <span className="text-[9px] uppercase tracking-widest">{isGeneratingPDF ? '...' : 'PDF'}</span>
         </button>
       </div>
     </div>
