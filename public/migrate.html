@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Saraab — Migrate to Cloud</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #000; color: #fff; font-family: -apple-system, sans-serif; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+    .card { background: #111; border: 1px solid #222; border-radius: 16px; padding: 40px; max-width: 520px; width: 100%; }
+    h1 { font-size: 11px; letter-spacing: .4em; text-transform: uppercase; color: #fff; margin-bottom: 4px; }
+    .sub { font-size: 11px; color: #555; letter-spacing: .2em; text-transform: uppercase; margin-bottom: 32px; }
+    .stat { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #1a1a1a; }
+    .stat:last-of-type { border-bottom: none; margin-bottom: 0; }
+    .stat-label { font-size: 12px; color: #666; }
+    .stat-value { font-size: 14px; font-weight: 600; }
+    .stat-value.found { color: #4ade80; }
+    .stat-value.empty { color: #555; }
+    .stats-box { margin-bottom: 28px; }
+    button { width: 100%; background: #fff; color: #000; border: none; border-radius: 10px; padding: 14px; font-size: 11px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; cursor: pointer; transition: background .15s; margin-top: 8px; }
+    button:hover:not(:disabled) { background: #e5e5e5; }
+    button:disabled { opacity: .4; cursor: not-allowed; }
+    .log { margin-top: 20px; background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 8px; padding: 16px; font-size: 12px; font-family: monospace; line-height: 1.8; max-height: 220px; overflow-y: auto; display: none; }
+    .log.visible { display: block; }
+    .ok { color: #4ade80; }
+    .err { color: #f87171; }
+    .info { color: #60a5fa; }
+    .warn { color: #fbbf24; }
+    .success-banner { background: #052e16; border: 1px solid #166534; border-radius: 10px; padding: 16px; margin-top: 16px; font-size: 12px; color: #4ade80; text-align: center; line-height: 1.6; display: none; }
+    .success-banner.visible { display: block; }
+  </style>
+</head>
+<body>
+<div class="card">
+  <h1>SARAAB</h1>
+  <p class="sub">One-time cloud migration</p>
+
+  <div class="stats-box" id="stats">
+    <div class="stat"><span class="stat-label">Invoices found</span><span class="stat-value" id="inv-count">Scanning…</span></div>
+    <div class="stat"><span class="stat-label">Expenses found</span><span class="stat-value" id="exp-count">Scanning…</span></div>
+    <div class="stat"><span class="stat-label">Branding saved</span><span class="stat-value" id="brand-count">Scanning…</span></div>
+  </div>
+
+  <button id="btn" disabled>Push to Supabase</button>
+
+  <div class="log" id="log"></div>
+  <div class="success-banner" id="success">
+    ✓ All data is now in Supabase.<br>
+    Open <strong>saraab-prop-shop-invoicer.vercel.app</strong> — your invoices will be there.
+  </div>
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://kqfzgqxakuymnbhbjwwu.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtxZnpncXhha3V5bW5iaGJqd3d1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1NTYwMzAsImV4cCI6MjA5MzEzMjAzMH0.YmfHwW3xFSFeF6PbjPLFY5pFPI6Z000dxgzCELhUc0Y';
+  const USER_ID = 'itsjaigupta';
+
+  const INVOICE_KEYS  = ['saraab_invoices_itsjaigupta', 'saraab_invoices'];
+  const EXPENSE_KEYS  = ['saraab_expenses_itsjaigupta', 'saraab_expenses'];
+  const BRANDING_KEYS = ['saraab_branding_defaults_itsjaigupta', 'saraab_branding_defaults'];
+
+  function readLS(keys) {
+    for (const k of keys) {
+      const raw = localStorage.getItem(k);
+      if (raw) { try { return JSON.parse(raw); } catch {} }
+    }
+    return null;
+  }
+
+  const log = document.getElementById('log');
+  function addLog(msg, cls = 'info') {
+    log.classList.add('visible');
+    const line = document.createElement('div');
+    line.className = cls;
+    line.textContent = msg;
+    log.appendChild(line);
+    log.scrollTop = log.scrollHeight;
+  }
+
+  const headers = {
+    'Content-Type': 'application/json',
+    'apikey': SUPABASE_KEY,
+    'Authorization': `Bearer ${SUPABASE_KEY}`,
+    'Prefer': 'resolution=merge-duplicates',
+  };
+
+  async function upsert(table, rows) {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+      method: 'POST', headers, body: JSON.stringify(rows),
+    });
+    if (!r.ok) throw new Error(`${table}: ${r.status} ${await r.text()}`);
+  }
+
+  // Scan on load
+  const invoices = readLS(INVOICE_KEYS) || [];
+  const expenses = readLS(EXPENSE_KEYS) || [];
+  const branding = readLS(BRANDING_KEYS);
+
+  const invEl = document.getElementById('inv-count');
+  const expEl = document.getElementById('exp-count');
+  const braEl = document.getElementById('brand-count');
+
+  invEl.textContent = invoices.length ? `${invoices.length} invoices` : 'None';
+  invEl.className = 'stat-value ' + (invoices.length ? 'found' : 'empty');
+
+  expEl.textContent = expenses.length ? `${expenses.length} expenses` : 'None';
+  expEl.className = 'stat-value ' + (expenses.length ? 'found' : 'empty');
+
+  braEl.textContent = branding ? 'Yes' : 'None';
+  braEl.className = 'stat-value ' + (branding ? 'found' : 'empty');
+
+  const btn = document.getElementById('btn');
+  if (invoices.length || expenses.length || branding) {
+    btn.disabled = false;
+  } else {
+    btn.textContent = 'No data found in this browser';
+  }
+
+  btn.addEventListener('click', async () => {
+    btn.disabled = true;
+    btn.textContent = 'Pushing…';
+
+    try {
+      if (invoices.length) {
+        addLog(`Pushing ${invoices.length} invoice(s)…`);
+        const rows = invoices.map(inv => ({ invoice_id: inv.id, user_id: USER_ID, data: inv }));
+        await upsert('invoices', rows);
+        addLog(`✓ ${invoices.length} invoice(s) saved`, 'ok');
+      }
+
+      if (expenses.length) {
+        addLog(`Pushing ${expenses.length} expense(s)…`);
+        const rows = expenses.map(exp => ({ expense_id: exp.id, user_id: USER_ID, data: exp }));
+        await upsert('expenses', rows);
+        addLog(`✓ ${expenses.length} expense(s) saved`, 'ok');
+      }
+
+      if (branding) {
+        addLog('Pushing branding defaults…');
+        await upsert('branding', [{ user_id: USER_ID, logo: branding.logo ?? null, signature: branding.signature ?? null }]);
+        addLog('✓ Branding saved', 'ok');
+      }
+
+      addLog('Migration complete!', 'ok');
+      document.getElementById('success').classList.add('visible');
+      btn.textContent = 'Done ✓';
+    } catch (err) {
+      addLog('Error: ' + err.message, 'err');
+      btn.disabled = false;
+      btn.textContent = 'Retry';
+    }
+  });
+</script>
+</body>
+</html>
