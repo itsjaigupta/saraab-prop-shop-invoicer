@@ -142,6 +142,7 @@ const AppMain: React.FC<AppMainProps> = ({ currentUser, onLogout }) => {
   const [analyticsTab, setAnalyticsTab] = useState<AnalyticsTab>('invoices');
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saved' | 'error'>('idle');
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     const handleResize = () => {
@@ -159,49 +160,62 @@ const AppMain: React.FC<AppMainProps> = ({ currentUser, onLogout }) => {
     handleResize();
     window.addEventListener('resize', handleResize);
 
-    // Load all data from Supabase (or localStorage fallback)
+    // Load all data — each piece independently so one failure can't block others
     const loadData = async () => {
       setIsLoading(true);
+      setLoadError(null);
+
+      // Migration runs silently — never blocks loading
+      db.migrateLocalToSupabase(currentUser).catch(() => {});
+
+      // Load invoices
+      let invoices: Invoice[] = [];
       try {
-        await db.migrateLocalToSupabase(currentUser);
-        const [invoices, loadedExpenses, branding] = await Promise.all([
-          db.loadInvoices(currentUser),
-          db.loadExpenses(currentUser),
-          db.loadBranding(currentUser),
-        ]);
-
-        setSavedInvoices(invoices);
-        setExpenses(loadedExpenses);
-
-        if (invoices.length > 0) {
-          // Auto-load the most recent invoice into the editor
-          const sorted = [...invoices].sort((a, b) => parseInt(b.id) - parseInt(a.id));
-          const latest = sorted[0];
-          const loaded = {
-            ...latest,
-            discountType: latest.discountType || 'amount',
-            securityDeposit: latest.securityDeposit || 0,
-            showLineItemRates: latest.showLineItemRates !== undefined ? latest.showLineItemRates : true,
-          };
-          if (branding) {
-            if (branding.logo) loaded.logo = branding.logo;
-            if (branding.signature) loaded.signature = branding.signature;
-          }
-          setInvoice(loaded);
-        } else {
-          // No saved invoices — open a blank new one
-          const emptyInv = getEmptyInvoice('001', currentUser);
-          if (branding) {
-            if (branding.logo) emptyInv.logo = branding.logo;
-            if (branding.signature) emptyInv.signature = branding.signature;
-          }
-          setInvoice(emptyInv);
-        }
-      } catch (err) {
-        console.error('Failed to load data:', err);
-      } finally {
-        setIsLoading(false);
+        invoices = await db.loadInvoices(currentUser);
+      } catch (err: any) {
+        console.error('Invoice load error:', err);
+        setLoadError(`Could not load invoices: ${err?.message ?? err}`);
       }
+
+      // Load expenses (non-critical — don't block if it fails)
+      let loadedExpenses: Expense[] = [];
+      try {
+        loadedExpenses = await db.loadExpenses(currentUser);
+      } catch (err) {
+        console.error('Expense load error:', err);
+      }
+
+      // Load branding (non-critical)
+      let branding: { logo: string | null; signature: string | null } | null = null;
+      try {
+        branding = await db.loadBranding(currentUser);
+      } catch (err) {
+        console.error('Branding load error:', err);
+      }
+
+      setSavedInvoices(invoices);
+      setExpenses(loadedExpenses);
+
+      if (invoices.length > 0) {
+        const sorted = [...invoices].sort((a, b) => parseInt(b.id) - parseInt(a.id));
+        const latest = sorted[0];
+        const loaded: Invoice = {
+          ...latest,
+          discountType: latest.discountType || 'amount',
+          securityDeposit: latest.securityDeposit || 0,
+          showLineItemRates: latest.showLineItemRates !== undefined ? latest.showLineItemRates : true,
+        };
+        if (branding?.logo) loaded.logo = branding.logo;
+        if (branding?.signature) loaded.signature = branding.signature;
+        setInvoice(loaded);
+      } else {
+        const emptyInv = getEmptyInvoice('001', currentUser);
+        if (branding?.logo) emptyInv.logo = branding.logo;
+        if (branding?.signature) emptyInv.signature = branding.signature;
+        setInvoice(emptyInv);
+      }
+
+      setIsLoading(false);
     };
     loadData();
 
@@ -606,6 +620,12 @@ const AppMain: React.FC<AppMainProps> = ({ currentUser, onLogout }) => {
 
   return (
     <div className="min-h-screen bg-[#fafaf9] font-sans text-gray-900">
+      {loadError && (
+        <div className="bg-red-50 border-b border-red-200 px-4 py-2 flex items-center justify-between no-print">
+          <span className="text-red-700 text-xs font-medium">⚠ {loadError}</span>
+          <button onClick={() => window.location.reload()} className="text-red-700 text-xs underline ml-4">Retry</button>
+        </div>
+      )}
       <style>{`
         /* Desktop Layout Logic */
         @media (min-width: 1024px) {
