@@ -671,14 +671,17 @@ const AppMain: React.FC<AppMainProps> = ({ currentUser, onLogout }) => {
                 width: 100% !important;
             }
             /* Override inline styles for the preview wrapper */
-            .print-preview-wrapper {
-                transform: none !important;
-                height: auto !important;
-                width: 100% !important;
-                margin: 0 !important;
+            .preview-clip-box {
                 overflow: visible !important;
                 box-shadow: none !important;
                 border-radius: 0 !important;
+                width: 100% !important;
+                height: auto !important;
+                margin: 0 !important;
+            }
+            .preview-scale-inner {
+                transform: none !important;
+                width: 100% !important;
             }
         }
       `}</style>
@@ -859,16 +862,26 @@ const AppMain: React.FC<AppMainProps> = ({ currentUser, onLogout }) => {
            </div>
 
            <div className="w-full flex justify-center md:block">
-               <div 
-                 style={{ 
-                    transform: `scale(${previewScale})`,
-                    transformOrigin: 'top center',
-                    height: previewScale < 1 ? `calc(297mm * ${previewScale})` : undefined,
-                    marginBottom: '20px'
+               {/* Outer: sized to the visual footprint — clips correctly */}
+               <div
+                 style={{
+                   width: previewScale < 1 ? `calc(210mm * ${previewScale})` : '210mm',
+                   height: previewScale < 1 ? `calc(297mm * ${previewScale})` : undefined,
+                   marginBottom: '20px',
                  }}
-                 className="print-preview-wrapper overflow-hidden shadow-2xl rounded-sm w-[210mm] origin-top-center print:shadow-none print:w-full print:rounded-none print:m-0 print:overflow-visible print:transform-none transition-transform duration-200"
+                 className="preview-clip-box overflow-hidden shadow-2xl rounded-sm"
                >
-                  <InvoicePreview invoice={invoice} />
+                 {/* Inner: full A4 size, scaled from top-left corner */}
+                 <div
+                   style={{
+                     transform: previewScale < 1 ? `scale(${previewScale})` : undefined,
+                     transformOrigin: 'top left',
+                     width: '210mm',
+                   }}
+                   className="preview-scale-inner transition-transform duration-200"
+                 >
+                   <InvoicePreview invoice={invoice} />
+                 </div>
                </div>
            </div>
         </div>
