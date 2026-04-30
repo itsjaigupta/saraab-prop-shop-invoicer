@@ -173,22 +173,30 @@ const AppMain: React.FC<AppMainProps> = ({ currentUser, onLogout }) => {
         setSavedInvoices(invoices);
         setExpenses(loadedExpenses);
 
-        // Determine next invoice ID
-        let nextId = '001';
         if (invoices.length > 0) {
-          const ids = invoices.map(inv => parseInt(inv.id)).filter(n => !isNaN(n));
-          if (ids.length > 0) {
-            nextId = (Math.max(...ids) + 1).toString().padStart(3, '0');
+          // Auto-load the most recent invoice into the editor
+          const sorted = [...invoices].sort((a, b) => parseInt(b.id) - parseInt(a.id));
+          const latest = sorted[0];
+          const loaded = {
+            ...latest,
+            discountType: latest.discountType || 'amount',
+            securityDeposit: latest.securityDeposit || 0,
+            showLineItemRates: latest.showLineItemRates !== undefined ? latest.showLineItemRates : true,
+          };
+          if (branding) {
+            if (branding.logo) loaded.logo = branding.logo;
+            if (branding.signature) loaded.signature = branding.signature;
           }
+          setInvoice(loaded);
+        } else {
+          // No saved invoices — open a blank new one
+          const emptyInv = getEmptyInvoice('001', currentUser);
+          if (branding) {
+            if (branding.logo) emptyInv.logo = branding.logo;
+            if (branding.signature) emptyInv.signature = branding.signature;
+          }
+          setInvoice(emptyInv);
         }
-
-        // Build empty invoice with correct ID + branding defaults
-        const emptyInv = getEmptyInvoice(nextId, currentUser);
-        if (branding) {
-          if (branding.logo) emptyInv.logo = branding.logo;
-          if (branding.signature) emptyInv.signature = branding.signature;
-        }
-        setInvoice(emptyInv);
       } catch (err) {
         console.error('Failed to load data:', err);
       } finally {
@@ -697,6 +705,11 @@ const AppMain: React.FC<AppMainProps> = ({ currentUser, onLogout }) => {
               >
                 <FolderOpen className="w-3.5 h-3.5" />
                 <span className="hidden md:inline">Open</span>
+                {savedInvoices.length > 0 && (
+                  <span className="bg-white text-black text-[9px] font-black rounded-full w-4 h-4 flex items-center justify-center leading-none">
+                    {savedInvoices.length > 99 ? '99+' : savedInvoices.length}
+                  </span>
+                )}
               </button>
 
               <button
