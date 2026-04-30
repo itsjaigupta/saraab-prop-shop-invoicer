@@ -329,16 +329,6 @@ const AppMain: React.FC<AppMainProps> = ({ currentUser, onLogout }) => {
     setTimeout(() => setSaveStatus('idle'), 2000);
   };
 
-  const handleSaveDefaults = async () => {
-    try {
-      await db.saveBranding(currentUser, invoice.logo, invoice.signature);
-      alert("Branding (Logo & Signature) saved as default!\n\nNew invoices will now automatically use these images.");
-    } catch (err) {
-      console.error('Save branding failed:', err);
-      alert("Failed to save branding defaults. Please try again.");
-    }
-  };
-
   const handleNewInvoice = () => {
     // Generate next ID
     let nextId = 1;
@@ -858,7 +848,7 @@ const AppMain: React.FC<AppMainProps> = ({ currentUser, onLogout }) => {
              <h1 className="text-2xl sm:text-4xl font-serif text-gray-900 italic">Invoice Builder</h1>
              <p className="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-1.5 ml-0.5">Prop Shop Management Suite</p>
            </div>
-           <InvoiceEditor invoice={invoice} setInvoice={setInvoice} onSaveDefaults={handleSaveDefaults} />
+           <InvoiceEditor invoice={invoice} setInvoice={setInvoice} />
         </div>
 
         {/* Preview Panel (Sticky) */}

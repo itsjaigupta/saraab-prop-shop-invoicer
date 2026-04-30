@@ -1,12 +1,11 @@
 import React, { useState, useMemo } from 'react';
 import { Invoice, InvoiceItem } from '../types';
-import { Plus, Trash2, Wand2, Eye, EyeOff, Upload, Hash, Percent, Tag, PenLine, Calculator, ArrowRight, RotateCcw, Save } from 'lucide-react';
+import { Plus, Trash2, Wand2, Eye, EyeOff, Hash, Percent, Tag, Calculator, ArrowRight, RotateCcw } from 'lucide-react';
 import { enhanceItemDescription } from '../services/geminiService';
 
 interface InvoiceEditorProps {
   invoice: Invoice;
   setInvoice: React.Dispatch<React.SetStateAction<Invoice>>;
-  onSaveDefaults: () => void;
 }
 
 const FieldInput = ({ 
@@ -91,7 +90,7 @@ const FieldTextarea = ({
   </div>
 );
 
-const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ invoice, setInvoice, onSaveDefaults }) => {
+const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ invoice, setInvoice }) => {
   const [loadingAi, setLoadingAi] = useState<string | null>(null);
 
   const updateToggleField = (
@@ -162,28 +161,6 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ invoice, setInvoice, onSa
     setLoadingAi(null);
   };
 
-  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setInvoice(prev => ({ ...prev, logo: reader.result as string }));
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleSignatureUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setInvoice(prev => ({ ...prev, signature: reader.result as string }));
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
   // Smart suggestions for Invoice ID
   const nextInvoiceIds = useMemo(() => {
     const currentId = invoice.id || '001';
@@ -208,58 +185,6 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ invoice, setInvoice, onSa
 
   return (
     <div className="space-y-10 pb-20">
-      {/* Branding Section */}
-      <section className="bg-white p-5 sm:p-8 rounded-2xl border border-gray-100 shadow-sm">
-        <div className="flex items-center justify-between gap-3 border-b pb-4 mb-6">
-          <h2 className="text-xs font-bold uppercase tracking-[0.3em] text-black">0. Branding & Authenticity</h2>
-          <button
-            onClick={onSaveDefaults}
-            className="shrink-0 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-black border border-black px-2.5 py-1.5 rounded-lg hover:bg-black hover:text-white transition"
-            title="Save current Logo & Signature as default for future invoices"
-          >
-            <Save className="w-3 h-3" /> <span className="hidden xs:inline">Set as</span> Default
-          </button>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="space-y-4">
-              <label className="block text-[10px] font-bold uppercase tracking-widest text-gray-400">Shop Logo</label>
-              <div className="flex items-center gap-4">
-                 <div className="w-24 h-16 border border-dashed border-gray-200 flex items-center justify-center bg-gray-50 rounded-xl overflow-hidden group relative">
-                   {invoice.logo ? (
-                     <img src={invoice.logo} alt="Logo" className="max-w-full max-h-full object-contain p-1" />
-                   ) : (
-                     <div className="text-[10px] text-gray-300 uppercase tracking-widest font-bold">Logo</div>
-                   )}
-                 </div>
-                 <label className="cursor-pointer bg-black text-white px-3 py-2 rounded-lg text-[10px] font-bold tracking-widest uppercase hover:bg-gray-800 transition flex items-center gap-2">
-                   <Upload className="w-3.5 h-3.5" />
-                   Upload
-                   <input type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
-                 </label>
-              </div>
-           </div>
-           
-           <div className="space-y-4">
-              <label className="block text-[10px] font-bold uppercase tracking-widest text-gray-400">Authorized Signature</label>
-              <div className="flex items-center gap-4">
-                 <div className="w-24 h-16 border border-dashed border-gray-200 flex items-center justify-center bg-gray-50 rounded-xl overflow-hidden group relative">
-                   {invoice.signature ? (
-                     <img src={invoice.signature} alt="Signature" className="max-w-full max-h-full object-contain p-1 mix-blend-multiply" />
-                   ) : (
-                     <div className="text-[10px] text-gray-300 uppercase tracking-widest font-bold">Sign</div>
-                   )}
-                 </div>
-                 <label className="cursor-pointer bg-white border border-black text-black px-3 py-2 rounded-lg text-[10px] font-bold tracking-widest uppercase hover:bg-gray-50 transition flex items-center gap-2">
-                   <PenLine className="w-3.5 h-3.5" />
-                   Upload
-                   <input type="file" accept="image/*" onChange={handleSignatureUpload} className="hidden" />
-                 </label>
-              </div>
-           </div>
-        </div>
-      </section>
-
       {/* Invoice Sequence & Date */}
       <section className="bg-white p-5 sm:p-8 rounded-2xl border border-gray-100 shadow-sm">
         <h2 className="text-xs font-bold uppercase tracking-[0.3em] text-black mb-6 border-b pb-4">1. Document Settings</h2>
