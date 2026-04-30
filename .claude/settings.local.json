@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c \"import os; print\\(os.path.getsize\\('C:/Users/jai19/AppData/Local/Temp/09459838-9d9a-4d20-9ebf-c97f1f2b746c.jpg'\\)\\)\")",
+      "Bash(xargs ls *)",
+      "Bash(sort -t/ -k1)",
+      "Bash(python -c ' *)",
+      "Bash(start \"\" \"http://localhost:3000/seed.html\")",
+      "Bash(start \"\" \"http://localhost:3000/fix001.html\")",
+      "Bash(gh auth *)",
+      "Bash(vercel --version)",
+      "Bash(git --version)",
+      "PowerShell(npm install -g vercel 2>&1)",
+      "PowerShell(tail -5)",
+      "PowerShell(vercel --version)",
+      "PowerShell(winget install --id GitHub.cli --silent --accept-package-agreements --accept-source-agreements 2>&1)",
+      "PowerShell($env:PATH = [System.Environment]::GetEnvironmentVariable\\(\"PATH\",\"Machine\"\\) + \";\" + [System.Environment]::GetEnvironmentVariable\\(\"PATH\",\"User\"\\); gh --version)",
+      "PowerShell($env:PATH = [System.Environment]::GetEnvironmentVariable\\(\"PATH\",\"Machine\"\\) + \";\" + [System.Environment]::GetEnvironmentVariable\\(\"PATH\",\"User\"\\); Set-Location \"d:\\\\Antigravity - Apps and Websites\\\\Saraab Prop Shop Invoicer\"; git init; git add .; git commit -m \"Initial commit: Saraab Prop Shop Invoicer app\")"
+    ]
+  }
+}

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Saraab Prop Shop Invoices</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Montserrat:wght@100..900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              serif: ['"Bodoni Moda"', 'serif'],
+              sans: ['Montserrat', 'sans-serif'],
+            },
+            colors: {
+              brand: {
+                50: '#fdf8f6',
+                100: '#f2e8e5',
+                500: '#8c5e58', 
+                600: '#6d4540',
+                900: '#3a221f',
+              }
+            },
+            screens: {
+              'print': {'raw': 'print'},
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      @media print {
+        @page { 
+          margin: 0; 
+          size: auto; 
+        }
+        body { 
+          -webkit-print-color-adjust: exact !important; 
+          print-color-adjust: exact !important;
+          font-family: 'Montserrat', sans-serif; 
+          background-color: white !important;
+          margin: 0 !important;
+          padding: 0 !important;
+        }
+        .no-print { display: none !important; }
+        .print-only { display: block !important; }
+        
+        /* Ensure the app container and root don't restrict width */
+        #root, .app-container { 
+          width: 100% !important; 
+          margin: 0 !important; 
+          padding: 0 !important; 
+          display: block !important;
+        }
+
+        /* 
+          Target the preview component directly.
+          We KEEP the internal padding (p-[15mm]) from the React component 
+          to ensure the design looks exactly like the preview on screen.
+        */
+        #invoice-preview { 
+          box-shadow: none !important; 
+          width: 100% !important; 
+          max-width: none !important;
+          margin: 0 !important;
+          border: none !important;
+        }
+      }
+      body {
+        font-family: 'Montserrat', sans-serif;
+        background-color: #f9fafb;
+      }
+      .logo-text {
+        font-family: 'Bodoni Moda', serif;
+        letter-spacing: 0.12em;
+        font-weight: 500;
+        text-transform: uppercase;
+      }
+      .logo-subtext {
+        font-family: 'Montserrat', sans-serif;
+        letter-spacing: 0.8em;
+        font-size: 0.55rem;
+        font-weight: 300;
+        text-transform: uppercase;
+      }
+      /* Hide scrollbar for Chrome, Safari and Opera */
+      .no-scrollbar::-webkit-scrollbar {
+          display: none;
+      }
+      /* Hide scrollbar for IE, Edge and Firefox */
+      .no-scrollbar {
+          -ms-overflow-style: none;  /* IE and Edge */
+          scrollbar-width: none;  /* Firefox */
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "@google/genai": "https://esm.sh/@google/genai@^1.37.0",
+    "lucide-react": "https://esm.sh/lucide-react@^0.562.0",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "react": "https://esm.sh/react@^19.2.3",
+    "date-fns": "https://esm.sh/date-fns@^4.1.0"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body>
+    <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>

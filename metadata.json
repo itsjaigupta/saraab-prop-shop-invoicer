@@ -1,0 +1,5 @@
+{
+  "name": "Saraab Prop Shop Invoicer",
+  "description": "Professional invoice generator for Saraab Prop Shop with PDF and CSV export capabilities, enhanced by Gemini AI for item descriptions.",
+  "requestFramePermissions": []
+}
