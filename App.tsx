@@ -6,6 +6,7 @@ import InvoicePreview from './components/InvoicePreview';
 import AnalyticsModal, { AnalyticsTab } from './components/AnalyticsModal';
 import LoginPage from './components/LoginPage';
 import { Printer, Copy, Check, Save, FolderOpen, Plus, Receipt, BarChart2, Download, Upload, FileText, TrendingUp, LogOut } from 'lucide-react';
+import * as db from './lib/db';
 
 const AUTH_KEY = 'saraab_auth_user';
 
@@ -139,54 +140,62 @@ const AppMain: React.FC<AppMainProps> = ({ currentUser, onLogout }) => {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [analyticsTab, setAnalyticsTab] = useState<AnalyticsTab>('invoices');
-  const [saveStatus, setSaveStatus] = useState<'idle' | 'saved'>('idle');
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saved' | 'error'>('idle');
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const handleResize = () => {
       const width = window.innerWidth;
       setIsMobile(width < 1024);
-      
-      // Calculate preview scale for mobile/tablet
-      // A4 is ~794px wide (210mm)
-      // We want some margin on mobile (e.g. 16px on each side = 32px total)
-      // Breakpoint chosen arbitrarily around 840px to start scaling
       const targetWidth = 794;
       const padding = 32;
       const availableWidth = width - padding;
-      
       if (availableWidth < targetWidth) {
         setPreviewScale(availableWidth / targetWidth);
       } else {
         setPreviewScale(1);
       }
     };
-    
     handleResize();
     window.addEventListener('resize', handleResize);
-    
-    // Load invoices from local storage and set next invoice number
-    const stored = localStorage.getItem(storageKey(currentUser, 'saraab_invoices'));
-    if (stored) {
-        try {
-            const parsed: Invoice[] = JSON.parse(stored);
-            setSavedInvoices(parsed);
-            if (parsed.length > 0) {
-                const ids = parsed.map(inv => parseInt(inv.id)).filter(n => !isNaN(n));
-                if (ids.length > 0) {
-                    const nextId = (Math.max(...ids) + 1).toString().padStart(3, '0');
-                    setInvoice(getEmptyInvoice(nextId));
-                }
-            }
-        } catch (e) {
-            console.error("Failed to parse saved invoices", e);
-        }
-    }
 
-    // Load expenses from local storage
-    const storedExp = localStorage.getItem(storageKey(currentUser, 'saraab_expenses'));
-    if (storedExp) {
-        try { setExpenses(JSON.parse(storedExp)); } catch (e) { console.error("Failed to parse expenses", e); }
-    }
+    // Load all data from Supabase (or localStorage fallback)
+    const loadData = async () => {
+      setIsLoading(true);
+      try {
+        await db.migrateLocalToSupabase(currentUser);
+        const [invoices, loadedExpenses, branding] = await Promise.all([
+          db.loadInvoices(currentUser),
+          db.loadExpenses(currentUser),
+          db.loadBranding(currentUser),
+        ]);
+
+        setSavedInvoices(invoices);
+        setExpenses(loadedExpenses);
+
+        // Determine next invoice ID
+        let nextId = '001';
+        if (invoices.length > 0) {
+          const ids = invoices.map(inv => parseInt(inv.id)).filter(n => !isNaN(n));
+          if (ids.length > 0) {
+            nextId = (Math.max(...ids) + 1).toString().padStart(3, '0');
+          }
+        }
+
+        // Build empty invoice with correct ID + branding defaults
+        const emptyInv = getEmptyInvoice(nextId, currentUser);
+        if (branding) {
+          if (branding.logo) emptyInv.logo = branding.logo;
+          if (branding.signature) emptyInv.signature = branding.signature;
+        }
+        setInvoice(emptyInv);
+      } catch (err) {
+        console.error('Failed to load data:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadData();
 
     return () => window.removeEventListener('resize', handleResize);
   }, []);
@@ -279,30 +288,33 @@ const AppMain: React.FC<AppMainProps> = ({ currentUser, onLogout }) => {
 
   // --- Storage Handlers ---
 
-  const handleSaveInvoice = () => {
+  const handleSaveInvoice = async () => {
     const updatedList = [...savedInvoices];
     const existingIndex = updatedList.findIndex(inv => inv.id === invoice.id);
-
     if (existingIndex >= 0) {
-        updatedList[existingIndex] = invoice;
+      updatedList[existingIndex] = invoice;
     } else {
-        updatedList.push(invoice);
+      updatedList.push(invoice);
     }
-
     setSavedInvoices(updatedList);
-    localStorage.setItem(storageKey(currentUser, 'saraab_invoices'), JSON.stringify(updatedList));
-
-    setSaveStatus('saved');
+    try {
+      await db.saveInvoice(currentUser, invoice, updatedList);
+      setSaveStatus('saved');
+    } catch (err) {
+      console.error('Save failed:', err);
+      setSaveStatus('error');
+    }
     setTimeout(() => setSaveStatus('idle'), 2000);
   };
 
-  const handleSaveDefaults = () => {
-    const defaults = {
-      logo: invoice.logo,
-      signature: invoice.signature
-    };
-    localStorage.setItem(storageKey(currentUser, 'saraab_branding_defaults'), JSON.stringify(defaults));
-    alert("Branding (Logo & Signature) saved as default!\n\nNew invoices will now automatically use these images.");
+  const handleSaveDefaults = async () => {
+    try {
+      await db.saveBranding(currentUser, invoice.logo, invoice.signature);
+      alert("Branding (Logo & Signature) saved as default!\n\nNew invoices will now automatically use these images.");
+    } catch (err) {
+      console.error('Save branding failed:', err);
+      alert("Failed to save branding defaults. Please try again.");
+    }
   };
 
   const handleNewInvoice = () => {
@@ -335,28 +347,40 @@ const AppMain: React.FC<AppMainProps> = ({ currentUser, onLogout }) => {
       }
   };
 
-  const handleDeleteInvoice = (id: string, e: React.MouseEvent) => {
-      e.stopPropagation();
-      if (window.confirm(`Are you sure you want to delete Invoice #${id}?`)) {
-          const updated = savedInvoices.filter(inv => inv.id !== id);
-          setSavedInvoices(updated);
-          localStorage.setItem(storageKey(currentUser, 'saraab_invoices'), JSON.stringify(updated));
+  const handleDeleteInvoice = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (window.confirm(`Are you sure you want to delete Invoice #${id}?`)) {
+      const updated = savedInvoices.filter(inv => inv.id !== id);
+      setSavedInvoices(updated);
+      try {
+        await db.deleteInvoice(currentUser, id, updated);
+      } catch (err) {
+        console.error('Delete invoice failed:', err);
       }
+    }
   };
 
   // --- Expense Handlers ---
 
-  const handleAddExpense = (exp: Expense) => {
+  const handleAddExpense = async (exp: Expense) => {
     const updated = [...expenses, exp];
     setExpenses(updated);
-    localStorage.setItem(storageKey(currentUser, 'saraab_expenses'), JSON.stringify(updated));
+    try {
+      await db.saveExpense(currentUser, exp, updated);
+    } catch (err) {
+      console.error('Save expense failed:', err);
+    }
   };
 
-  const handleDeleteExpense = (id: string) => {
+  const handleDeleteExpense = async (id: string) => {
     if (!window.confirm('Delete this expense?')) return;
     const updated = expenses.filter(e => e.id !== id);
     setExpenses(updated);
-    localStorage.setItem(storageKey(currentUser, 'saraab_expenses'), JSON.stringify(updated));
+    try {
+      await db.deleteExpense(currentUser, id, updated);
+    } catch (err) {
+      console.error('Delete expense failed:', err);
+    }
   };
 
   // --- Local File Handlers ---
@@ -563,6 +587,15 @@ const AppMain: React.FC<AppMainProps> = ({ currentUser, onLogout }) => {
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-black flex flex-col items-center justify-center gap-4">
+        <span className="text-white text-xl tracking-[0.4em] font-bold">SARAAB</span>
+        <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#fafaf9] font-sans text-gray-900">
       <style>{`
@@ -686,11 +719,11 @@ const AppMain: React.FC<AppMainProps> = ({ currentUser, onLogout }) => {
 
               <button 
                 onClick={handleSaveInvoice}
-                className={`flex items-center gap-2 text-[10px] px-3 py-2 rounded-lg transition font-bold uppercase tracking-widest border whitespace-nowrap ${saveStatus === 'saved' ? 'bg-green-600 border-green-600 text-white' : 'bg-gray-800 border-gray-700 text-white hover:bg-gray-700'}`}
-                title="Save Invoice to Browser Storage"
+                className={`flex items-center gap-2 text-[10px] px-3 py-2 rounded-lg transition font-bold uppercase tracking-widest border whitespace-nowrap ${saveStatus === 'saved' ? 'bg-green-600 border-green-600 text-white' : saveStatus === 'error' ? 'bg-red-700 border-red-700 text-white' : 'bg-gray-800 border-gray-700 text-white hover:bg-gray-700'}`}
+                title="Save Invoice"
               >
                 {saveStatus === 'saved' ? <Check className="w-3.5 h-3.5" /> : <Save className="w-3.5 h-3.5" />}
-                <span className="hidden md:inline">{saveStatus === 'saved' ? 'Saved' : 'Save'}</span>
+                <span className="hidden md:inline">{saveStatus === 'saved' ? 'Saved' : saveStatus === 'error' ? 'Error' : 'Save'}</span>
               </button>
 
               {/* Import/Export Group */}
