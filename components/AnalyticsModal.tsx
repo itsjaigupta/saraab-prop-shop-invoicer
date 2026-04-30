@@ -213,11 +213,16 @@ const AnalyticsModal: React.FC<Props> = ({
   );
 
   return (
-    <div className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[88vh] flex flex-col overflow-hidden">
+    <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-end md:items-center justify-center md:p-4">
+      <div className="bg-white w-full md:rounded-2xl md:max-w-2xl md:max-h-[88vh] max-h-[92vh] rounded-t-2xl shadow-2xl flex flex-col overflow-hidden">
+
+        {/* Drag handle — mobile only */}
+        <div className="md:hidden flex justify-center pt-3 pb-1 shrink-0">
+          <div className="w-10 h-1 bg-gray-300 rounded-full" />
+        </div>
 
         {/* Header */}
-        <div className="px-6 pt-5 pb-0 flex justify-between items-start shrink-0">
+        <div className="px-6 pt-4 md:pt-5 pb-0 flex justify-between items-start shrink-0">
           <div>
             <h2 className="text-xl font-bold font-serif italic">Analytics</h2>
             <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mt-0.5">Saraab Prop Shop</p>

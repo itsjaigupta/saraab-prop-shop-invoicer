@@ -147,7 +147,7 @@ const AppMain: React.FC<AppMainProps> = ({ currentUser, onLogout }) => {
   useEffect(() => {
     const handleResize = () => {
       const width = window.innerWidth;
-      setIsMobile(width < 1024);
+      setIsMobile(width < 768);
       const targetWidth = 794;
       const padding = 32;
       const availableWidth = width - padding;
@@ -627,36 +627,40 @@ const AppMain: React.FC<AppMainProps> = ({ currentUser, onLogout }) => {
         </div>
       )}
       <style>{`
-        /* Desktop Layout Logic */
-        @media (min-width: 1024px) {
+        /* ── iPad: side-by-side from 768px ── */
+        @media (min-width: 768px) {
             .app-container {
                 display: flex;
                 align-items: flex-start;
-                gap: 40px;
-                padding: 20px;
+                gap: 24px;
+                padding: 16px;
                 max-width: 1600px;
                 margin: 0 auto;
             }
-
-            .builder-panel {
-                flex: 1;
-                min-width: 400px;
-            }
-
+            .builder-panel { flex: 1; min-width: 340px; }
             .preview-panel {
                 position: sticky;
-                top: 84px; /* Sticks 84px from top (64px Nav + 20px gap) */
-                
-                /* Strict Sizing */
-                flex: 0 0 calc(210mm + 21px); /* A4 + padding + border */
-                height: calc(100vh - 104px); /* Viewport - Nav - Padding */
-                
+                top: 72px;
+                flex: 0 0 auto;
+                width: min(50vw, calc(210mm + 21px));
+                height: calc(100vh - 88px);
                 overflow-y: auto;
-                padding-left: 20px;
+                padding-left: 16px;
                 border-left: 1px solid #eee;
-                
-                /* Hide scrollbar for cleaner look */
                 scrollbar-width: thin;
+            }
+        }
+
+        /* ── Desktop: full A4 preview from 1024px ── */
+        @media (min-width: 1024px) {
+            .app-container { gap: 40px; padding: 20px; }
+            .builder-panel { min-width: 400px; }
+            .preview-panel {
+                top: 84px;
+                width: auto;
+                flex: 0 0 calc(210mm + 21px);
+                height: calc(100vh - 104px);
+                padding-left: 20px;
             }
         }
 
@@ -699,7 +703,7 @@ const AppMain: React.FC<AppMainProps> = ({ currentUser, onLogout }) => {
         onChange={handleImportJSON} 
       />
 
-      <nav className="bg-black text-white shadow-xl sticky top-0 z-50 no-print">
+      <nav className="bg-black text-white shadow-xl sticky top-0 z-50 no-print" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center gap-2">
             <div className="flex items-center gap-4 min-w-max">
@@ -823,9 +827,9 @@ const AppMain: React.FC<AppMainProps> = ({ currentUser, onLogout }) => {
         </div>
       </nav>
 
-      <main className="app-container px-4 sm:px-6 lg:px-0 py-10 lg:py-0 print:p-0 print:m-0 print:w-full print:block">
+      <main className="app-container px-4 sm:px-6 md:px-0 py-6 md:py-0 pb-24 md:pb-0 print:p-0 print:m-0 print:w-full print:block">
         {/* Mobile Toggle */}
-        <div className="lg:hidden mb-8 flex rounded-xl bg-gray-200 p-1.5 no-print shadow-inner">
+        <div className="md:hidden mb-5 sticky top-16 z-30 flex rounded-xl bg-gray-200 p-1.5 no-print shadow-inner">
           <button onClick={() => setView('edit')} className={`flex-1 py-3 text-[10px] font-bold uppercase tracking-widest rounded-lg transition ${view === 'edit' ? 'bg-white shadow text-black' : 'text-gray-500'}`}>
             Editor
           </button>
@@ -845,12 +849,12 @@ const AppMain: React.FC<AppMainProps> = ({ currentUser, onLogout }) => {
 
         {/* Preview Panel (Sticky) */}
         <div className={`preview-panel ${isMobile && view !== 'preview' ? 'hidden' : 'block'}`}>
-           <div className="mb-4 flex justify-between items-center no-print px-2 lg:w-[210mm] w-full lg:mt-0 mt-8">
+           <div className="mb-4 flex justify-between items-center no-print px-2 w-full mt-0">
                <h2 className="text-[10px] font-bold uppercase tracking-[0.3em] text-gray-400">Preview</h2>
                <span className="text-[9px] uppercase font-bold text-gray-400 border border-gray-200 px-2 py-1 rounded">A4 • 210mm x 297mm</span>
            </div>
-           
-           <div className="w-full flex justify-center lg:block">
+
+           <div className="w-full flex justify-center md:block">
                <div 
                  style={{ 
                     transform: `scale(${previewScale})`,
@@ -878,6 +882,34 @@ const AppMain: React.FC<AppMainProps> = ({ currentUser, onLogout }) => {
           initialTab={analyticsTab}
         />
       )}
+
+      {/* ── Phone bottom nav (hidden on md+) ── */}
+      <div
+        className="fixed bottom-0 inset-x-0 md:hidden bg-black border-t border-gray-800 flex z-40 no-print"
+        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+      >
+        <button onClick={handleNewInvoice} className="flex-1 flex flex-col items-center pt-3 pb-2 gap-1 text-gray-500 active:text-white transition">
+          <Plus className="w-5 h-5" />
+          <span className="text-[9px] uppercase tracking-widest">New</span>
+        </button>
+        <button onClick={() => { setAnalyticsTab('invoices'); setShowAnalytics(true); }} className="flex-1 flex flex-col items-center pt-3 pb-2 gap-1 text-gray-500 active:text-white transition relative">
+          <FolderOpen className="w-5 h-5" />
+          {savedInvoices.length > 0 && (
+            <span className="absolute top-2.5 right-[calc(50%-14px)] translate-x-4 bg-white text-black text-[8px] font-black rounded-full w-3.5 h-3.5 flex items-center justify-center leading-none">
+              {savedInvoices.length > 9 ? '9+' : savedInvoices.length}
+            </span>
+          )}
+          <span className="text-[9px] uppercase tracking-widest">Open</span>
+        </button>
+        <button onClick={handleSaveInvoice} className={`flex-1 flex flex-col items-center pt-3 pb-2 gap-1 transition ${saveStatus === 'saved' ? 'text-green-400' : saveStatus === 'error' ? 'text-red-400' : 'text-gray-500 active:text-white'}`}>
+          {saveStatus === 'saved' ? <Check className="w-5 h-5" /> : <Save className="w-5 h-5" />}
+          <span className="text-[9px] uppercase tracking-widest">{saveStatus === 'saved' ? 'Saved' : 'Save'}</span>
+        </button>
+        <button onClick={handleDownloadPDF} disabled={isGeneratingPDF} className="flex-1 flex flex-col items-center pt-3 pb-2 gap-1 text-gray-500 active:text-white transition disabled:opacity-30">
+          <FileText className={`w-5 h-5 ${isGeneratingPDF ? 'animate-pulse' : ''}`} />
+          <span className="text-[9px] uppercase tracking-widest">PDF</span>
+        </button>
+      </div>
     </div>
   );
 };
